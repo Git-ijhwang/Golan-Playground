@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 import "math/rand"
 
 func swap(p *int, q *int) {
@@ -9,34 +11,15 @@ func swap(p *int, q *int) {
 	*q = t
 }
 
-func sort(letter [10]int) {
-	//fmt.Println(letter)
-
-}
-
-func sort_print(p [100]int) {
-	for i := 0; i < 10; i++ {
-		fmt.Printf("%d ", p[i])
-	}
-	fmt.Printf("\n")
-}
-
-func main() {
-	//var letter [10]int = [5, 3, 1, 2, 9, 8, 7, 6, 4 ]
-	//letter := []int{5, 3, 1, 2, 9, 8, 7, 6, 4 }
-	var ptr *int
-	var value int
-
-	value = 10
-	ptr = &value
-	fmt.Println(*ptr)
-	fmt.Println(ptr)
-	fmt.Println("=-======")
-	var letter [100]int
-	for i := 0; i < 100; i++ {
-		letter[i] = rand.Int() % 30
-	}
-	sort_print(letter)
+//func sort(letter [100]int) {
+func sort(letter *[10]int) {
+	//
+	//	fmt.Println(*letter)
+	//	//fmt.Println(letter+1)
+	//	for i, v := range letter {
+	//		fmt.Println(i)
+	//		fmt.Println(v)
+	//	}
 
 	for i := 0; i < len(letter); i++ {
 		for j := i; j < len(letter)-1; j++ {
@@ -45,6 +28,22 @@ func main() {
 			}
 		}
 	}
+}
+
+func sort_print(p [10]int) {
+	for i := 0; i < 10; i++ {
+		fmt.Printf("%d ", p[i])
+	}
+	fmt.Printf("\n")
+}
+
+func main() {
+	var letter [10]int
+	for i := 0; i < len(letter); i++ {
+		letter[i] = rand.Int() % 10
+	}
+
 	sort_print(letter)
-	//fmt.Println(letter)
+	sort(&letter)
+	sort_print(letter)
 }
