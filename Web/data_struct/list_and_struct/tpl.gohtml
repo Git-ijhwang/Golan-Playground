@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Py peeps</title>
+</head>
+<body>
+================================
+{{range .}}
+{{.}}
+{{end}}
+
+================================
+{{if .}}
+    {{.}}
+{{end}}
+================================
+{{range .}}
+    {{if .Name}}
+        {{.Name}}
+    {{end}}
+{{end}}
+================================
+{{range .}}
+    {{if and .Name .Admin}}
+        Name: {{.Name}}
+        Motto: {{.Motto}}
+        Admin: {{.Admin}}
+    {{end}}
+{{end}}
+================================
+
+
+</body>
+</html>

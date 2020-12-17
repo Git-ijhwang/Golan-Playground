@@ -6,9 +6,9 @@
 </head>
 <body>
 <ul>
-    {{range $index, $element := .}}
+    {{range .}}
     <li>
-        {{$index}}-{{$element}}
+        {{.Name}}-{{.Motto}}
     </li>
     {{end}}
 </ul>
