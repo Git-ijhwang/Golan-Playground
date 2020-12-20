@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Header Menu</title>
+    <!-- We haved't learned to serve files yet ... -->
+    <link rel=""styleshhe" href="main.css">
+</head>
+
+<body>
+    {{template "svgs"}}
+    {{template "header"}}
+    <div id="atf">
+        <main>
+            <svg class="icon icon-big-in">
+                <use xlink:href="#inbox"></use>
+            </svg>
+        </main>
+    </div>
+
+    {{template "btf"}}
+    <H1>The meaning of life: {{.}} </H1>
+    <p>{{template "polarbear"}}</p>
+</body>
+</html>
