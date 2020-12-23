@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-const SZ_ARRAY = 65535
+const SZ_ARRAY = 10
 
 type node struct {
 	hs   int
@@ -16,39 +16,84 @@ type node struct {
 
 var hash [SZ_ARRAY]*list.List
 
-func (nd *node) PrintHs(hv int) int {
-	nd
-	return hv * 2
+func PrintHs() {
+	for i := 0; i < SZ_ARRAY; i++ {
+		fmt.Println("#", i)
+		l := hash[i]
+		/* loop for inner linked list */
+		for e := l.Front(); e != nil; e = e.Next() {
+			fmt.Println(e.Value.(node).name, e.Value.(node).id)
+			//,  t.id%SZ_ARRAY,  e.Value.(node).hs,  e.Value.(node).id)
+		}
+	}
 }
 
-func main() {
+func insert(key int) {
 	var nd node
 
+	var h_key int = key % SZ_ARRAY
+
+	l := hash[h_key]
+
+	e := find(key)
+	if e != nil {
+		fmt.Println("Errror")
+	}
+
+	nd.name = fmt.Sprintf("%d_%s", h_key, "test")
+	nd.id = key
+	l.PushFront(nd)
+
+}
+
+func del(key int) {
+
+	var h_key int = key % SZ_ARRAY
+
+	l := hash[h_key]
+
+	e := find(key)
+	if e != nil {
+		l.Remove(e)
+		fmt.Println("Delete Success")
+	}
+}
+
+func find(key int) *list.Element {
+	var h_key int = key % SZ_ARRAY
+
+	l := hash[h_key]
+
+	if l.Len() <= 0 {
+		return nil
+	}
+
+	for e := l.Front(); e != nil; e = e.Next() {
+		if e.Value.(node).id == key {
+			fmt.Println("Found it the node!")
+			return e
+		}
+	}
+	return nil
+}
+
+var input int
+
+func main() {
+
+	/* List in the hash Initialization */
 	for i := 0; i < SZ_ARRAY; i++ {
 		hash[i] = list.New()
 	}
 
-	fmt.Println(&hash[0])
-	for i := 0; i < SZ_ARRAY*2; i++ {
-		nd.name = fmt.Sprintf("%d_%s", rand.Int()%SZ_ARRAY, "test")
-		nd.id = rand.Int() % SZ_ARRAY
-		hash[nd.id%SZ_ARRAY].PushBack(nd)
+	/* push the data into hash */
+	for i := 0; i < SZ_ARRAY*3; i++ {
+		insert(rand.Int())
 	}
 
-	for i := 0; i < SZ_ARRAY; i++ {
-		l := hash[i]
-		//fmt.Println("----------[", i, "]------------")
-		for e := l.Front(); e != nil; e = e.Next() {
-			t := &(e.Value.(node))
-			//e.Value.(node).PrintHs(e.Value.(node).id)
-			x := t.PrintHs(e.Value.(node).id)
-			fmt.Println(e.Value.(node).name)
-			fmt.Println(e.Value.(node).hs)
-
-			if i == 10 {
-				fmt.Println(e.Value.(node).name, "=-", t.id%SZ_ARRAY, "----", e.Value.(node).hs, "=====", e.Value.(node).id)
-			}
-		}
-
-	}
+	PrintHs()
+	fmt.Scanf("%d", &input)
+	fmt.Println(input)
+	del(input)
+	PrintHs()
 }
