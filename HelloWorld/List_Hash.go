@@ -22,13 +22,15 @@ func PrintHs() {
 		l := hash[i]
 		/* loop for inner linked list */
 		for e := l.Front(); e != nil; e = e.Next() {
-			fmt.Println(e.Value.(node).name, e.Value.(node).id)
+			fmt.Println("\t Name: ", e.Value.(node).name)
+			fmt.Println("\t ID: ", e.Value.(node).id)
+			fmt.Println("\t Hash Key: ", e.Value.(node).hs, "\n")
 			//,  t.id%SZ_ARRAY,  e.Value.(node).hs,  e.Value.(node).id)
 		}
 	}
 }
 
-func insert(key int) {
+func insert(key int) int {
 	var nd node
 
 	var h_key int = key % SZ_ARRAY
@@ -38,12 +40,14 @@ func insert(key int) {
 	e := find(key)
 	if e != nil {
 		fmt.Println("Errror")
+		return -1
 	}
 
 	nd.name = fmt.Sprintf("%d_%s", h_key, "test")
 	nd.id = key
+	nd.hs = h_key
 	l.PushFront(nd)
-
+	return h_key
 }
 
 func del(key int) {
@@ -92,8 +96,11 @@ func main() {
 	}
 
 	PrintHs()
+
+	/* Test for Delete */
 	fmt.Scanf("%d", &input)
 	fmt.Println(input)
 	del(input)
+
 	PrintHs()
 }
