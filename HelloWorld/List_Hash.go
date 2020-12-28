@@ -17,11 +17,14 @@ type node struct {
 var hash [SZ_ARRAY]*list.List
 
 func PrintHs() {
+
 	for i := 0; i < SZ_ARRAY; i++ {
 		fmt.Println("#", i)
 		l := hash[i]
+
 		/* loop for inner linked list */
 		for e := l.Front(); e != nil; e = e.Next() {
+
 			fmt.Println("\t Name: ", e.Value.(node).name)
 			fmt.Println("\t ID: ", e.Value.(node).id)
 			fmt.Println("\t Hash Key: ", e.Value.(node).hs, "\n")
@@ -39,7 +42,7 @@ func insert(key int) int {
 
 	e := find(key)
 	if e != nil {
-		fmt.Println("Errror")
+		fmt.Println("Error")
 		return -1
 	}
 
@@ -47,16 +50,16 @@ func insert(key int) int {
 	nd.id = key
 	nd.hs = h_key
 	l.PushFront(nd)
+
 	return h_key
 }
 
 func del(key int) {
-
 	var h_key int = key % SZ_ARRAY
 
 	l := hash[h_key]
-
 	e := find(key)
+
 	if e != nil {
 		l.Remove(e)
 		fmt.Println("Delete Success")
