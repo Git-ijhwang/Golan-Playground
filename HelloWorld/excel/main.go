@@ -93,12 +93,15 @@ func writeFinalInfo (xlsx *excelize.File, tiker string, sheet string, index int,
 		writeExcelString(xlsx, sheet, index, baseCol+3, "Yield")
 		writeExcelString(xlsx, sheet, index+1, baseCol+3, fmt.Sprintf("%f%%",(myFinalAsset-myTotalAsset)/myTotalAsset*100))
 
-		writeExcelString(xlsx, sheet, index, baseCol+3, "MDD")
-		writeExcelFloat(xlsx, sheet, index+1, baseCol+3, stkMdd)
+		writeExcelString(xlsx, sheet, index, baseCol+4, "Stock MDD")
+		writeExcelFloat(xlsx, sheet, index+1, baseCol+4, stkMdd)
+
+		writeExcelString(xlsx, sheet, index, baseCol+5, "My Asset MDD")
+		writeExcelFloat(xlsx, sheet, index+1, baseCol+5, myMdd)
 
 	} else {
 
-		baseCol = baseCol+rune(new*5)
+		baseCol = baseCol+rune(new*8)
 		writeExcelString(xlsx, sheet, index-1, baseCol, tiker)
 		writeExcelString(xlsx, sheet, index, baseCol, "Total Investing Value")
 		writeExcelFloat(xlsx, sheet, index+1, baseCol, myTotalAsset)
@@ -107,11 +110,75 @@ func writeFinalInfo (xlsx *excelize.File, tiker string, sheet string, index int,
 		writeExcelString(xlsx, sheet, index, baseCol+2, "Yield")
 		writeExcelString(xlsx, sheet, index+1, baseCol+2, fmt.Sprintf("%f%%",(myFinalAsset-myTotalAsset)/myTotalAsset*100))
 
-		writeExcelString(xlsx, sheet, index, baseCol+3, "MDD")
+		writeExcelString(xlsx, sheet, index, baseCol+3, "Stock MDD")
 		writeExcelFloat(xlsx, sheet, index+1, baseCol+3, stkMdd)
+		writeExcelString(xlsx, sheet, index, baseCol+4, "My Asset MDD")
+		writeExcelFloat(xlsx, sheet, index+1, baseCol+4, myMdd)
 	}
 }
 
+func calcMdd (curVal float64, newIndex int) {
+
+	if (newIndex == 2) {
+		stkMdd = 0
+		stkHighVal = curVal
+		stkLowVal = curVal
+
+		myMdd = 0
+		myHighVal = curVal
+		myLowVal = curVal
+	} else {
+
+		if stkHighVal < curVal {
+			stkHighVal = curVal
+			stkLowVal = curVal
+		}
+
+		if stkLowVal > curVal {
+			stkLowVal = curVal
+		} else {
+			//Calc MDD
+			if (stkHighVal == stkLowVal) {
+			}else if (stkHighVal > stkLowVal) {
+				tmp:=(stkHighVal - stkLowVal) / stkHighVal
+				if (stkMdd == 0) {
+					stkMdd = tmp
+				} else {
+					if (stkMdd < tmp ) {
+						stkMdd = tmp
+					}
+				}
+				stkHighVal = stkLowVal
+			} 
+		}
+
+		if myHighVal < (curVal*float64(preStkCnt)) {
+			myHighVal = curVal*float64(preStkCnt)
+			myLowVal = curVal*float64(preStkCnt)
+		}
+
+		if myLowVal > (curVal * float64(preStkCnt)) {
+			myLowVal = curVal*float64(preStkCnt)
+			// fmt.Println(curVal, preStkCnt, myLowVal)
+		} else {
+			//Calc MDD
+			if (myHighVal == myLowVal) {
+			}else if (myHighVal > myLowVal) {
+				// myMdd = (myHighVal - myLowVal) / myHighVal
+				tmp:=(myHighVal - myLowVal) / myHighVal
+
+				if (myMdd == 0.0) {
+					myMdd = tmp
+				}else {
+					if (myMdd < tmp) {
+						myMdd = tmp
+					}
+				}
+				myHighVal = myLowVal
+			} 
+		}
+	}
+}
 
 /* Senario #1*/
 func senario_1 (xlsx *excelize.File, curVal float64, newIndex int, sheet string) {
@@ -123,7 +190,7 @@ func senario_1 (xlsx *excelize.File, curVal float64, newIndex int, sheet string)
 	if newIndex%52 == 0 && newIndex>3 {
 		base = base-0.002
 		seed = seed*0.9
-		fmt.Println(seed)
+		// fmt.Println(seed)
 	}
 
 	if (newIndex == 2) {
@@ -220,7 +287,7 @@ func senario_2 (xlsx *excelize.File, curVal float64, newIndex int, sheet string)
 	if newIndex%52 == 0 && newIndex>3 {
 		base = base-0.002
 		seed = seed*0.9
-		fmt.Println(seed)
+		// fmt.Println(seed)
 	}
 
 	if (newIndex == 2) {
@@ -248,13 +315,15 @@ func senario_2 (xlsx *excelize.File, curVal float64, newIndex int, sheet string)
 
 		curSeed = (curSeed-(float64(stkCnt)*curVal))+seed
 
-		stkMdd = curVal
+		/*
+		stkMdd = 0
 		stkHighVal = curVal
 		stkLowVal = curVal
 
-		myMdd = curVal
+		myMdd = 0
 		myHighVal = curVal
 		myLowVal = curVal
+		*/
 
 	} else {
 		// fmt.Println(preStkCnt)
@@ -264,6 +333,7 @@ func senario_2 (xlsx *excelize.File, curVal float64, newIndex int, sheet string)
 
 		writeExcelFloat(xlsx, sheet, newIndex, 'L', myTotalAsset)
 
+		/*
 		if stkHighVal < curVal {
 			stkHighVal = curVal
 			stkLowVal = curVal
@@ -276,32 +346,43 @@ func senario_2 (xlsx *excelize.File, curVal float64, newIndex int, sheet string)
 			if (stkHighVal == stkLowVal) {
 			}else if (stkHighVal > stkLowVal) {
 				tmp:=(stkHighVal - stkLowVal) / stkHighVal
-				if (stkMdd < tmp) {
+				if (stkMdd == 0) {
 					stkMdd = tmp
+				} else {
+					if (stkMdd < tmp ) {
+						stkMdd = tmp
+					}
 				}
 				stkHighVal = stkLowVal
 			} 
 		}
 
-		if myHighVal < curVal {
-			myHighVal = curVal
-			myLowVal = curVal
+		if myHighVal < (curVal*float64(preStkCnt)) {
+			myHighVal = curVal*float64(preStkCnt)
+			myLowVal = curVal*float64(preStkCnt)
 		}
 
-		if myLowVal > curVal {
-			myLowVal = curVal
+		if myLowVal > (curVal * float64(preStkCnt)) {
+			myLowVal = curVal*float64(preStkCnt)
+			// fmt.Println(curVal, preStkCnt, myLowVal)
 		} else {
 			//Calc MDD
 			if (myHighVal == myLowVal) {
 			}else if (myHighVal > myLowVal) {
 				// myMdd = (myHighVal - myLowVal) / myHighVal
 				tmp:=(myHighVal - myLowVal) / myHighVal
-				if (myMdd < tmp) {
+
+				if (myMdd == 0.0) {
 					myMdd = tmp
+				}else {
+					if (myMdd < tmp) {
+						myMdd = tmp
+					}
 				}
 				myHighVal = myLowVal
 			} 
 		}
+		*/
 
 		if totPreVal < highBase && totPreVal > lowBase{
 			writeExcelString(xlsx, sheet, newIndex, 'A', "-")
@@ -564,7 +645,7 @@ func main () {
 			if (xlsx != nil) {
 				writeBasicInfo(xlsx, resultSheetName, newIndex, row);
 				curVal, _ := strconv.ParseFloat(row[4], 64)
-				// senario_1(xlsx, curVal, newIndex, resultSheetName)
+				calcMdd(curVal, newIndex)
 				senario_2(xlsx, curVal, newIndex, resultSheetName)
 			}
 
@@ -572,6 +653,7 @@ func main () {
     	}
 
 		if (numFile == 1) {
+			
 			writeFinalInfo (xlsx, fileasName[i], resultSheetName, newIndex+5, 0);
 			xlsx.SetActiveSheet(sheet)
 
