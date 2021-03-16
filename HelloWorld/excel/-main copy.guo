@@ -1,0 +1,284 @@
+package main
+
+import (
+	"time"
+    "fmt"
+	"os"
+	"strings"
+	"strconv"
+
+    "github.com/360EntSecGroup-Skylar/excelize"
+)
+
+var xlsx *excelize.File
+
+func writeExcelFloat(xlsx *excelize.File, sheetName string, index int, row string, value float64) {
+	pos:=fmt.Sprintf("%s%d", row, index)
+	xlsx.SetCellValue(sheetName, pos, value)
+	return;
+}
+
+func writeExcelInt(xlsx *excelize.File, sheetName string, index int, row string, value int) {
+	pos:=fmt.Sprintf("%s%d", row, index)
+	xlsx.SetCellValue(sheetName, pos, value)
+	return;
+}
+
+func writeExcelString(xlsx *excelize.File, sheetName string, index int, row string, value string) {
+	pos:=fmt.Sprintf("%s%d", row, index)
+	xlsx.SetCellValue(sheetName, pos, value)
+	return;
+}
+
+func modDate(cel string) time.Time {
+	const (
+		layoutISO = "2006-01-02"
+		layoutUS  = "January 2, 2006"
+	)
+
+	str := strings.Split(cel, "-")
+	date := "20"+str[2]+"-"+str[0]+"-"+str[1]
+	t, _ := time.Parse(layoutISO, date)
+
+	return t
+}
+
+func writeBaseicInfo (xlsx *excelize.File) {
+
+}
+
+func senario_1 (xlsx *excelize.File) {
+
+}
+
+func main () {
+	fileName := os.Args[1]
+	filePos := fmt.Sprintf("/Users/root1/Downloads/%s", fileName)
+	// xlsx, err := excelize.OpenFile ("/Users/root1/Downloads/QLD.xlsx")
+	skipWeek := 1
+
+	const base =  1.02
+	const low = 0.9
+	const high = 1.1
+
+	initSeed := 30000.0
+	seed := 1000.0
+	curSeed := 0.0
+	preStkCnt := 0
+	accumVal := 0.0
+	sell := 0.0
+	stkCnt := 0
+	var lowBase float64;
+	var highBase float64;
+	index := 2
+	newIndex := 2
+
+	xlsx, err := excelize.OpenFile (filePos)
+	if (err != nil) {
+		fmt.Println(err)
+		return
+	}
+
+	// var CelDate [2]uint8
+
+
+	rows , err := xlsx.GetRows("QLD")
+	if (err != nil) {
+		fmt.Println(err)
+		return
+	}
+
+	// fmt.Println(cap(rows))
+
+
+	sheet := xlsx.NewSheet("Result")
+
+	for _, row := range rows {
+
+		// fmt.Println(row[0])
+		if row[0] == "Date" {
+			continue;
+		}
+
+		index++
+		/*
+		Date:=fmt.Sprintf("A%d", index)
+		// cel, err := xlsx.GetCellValue("TQQQ", Date);
+		if (err != nil) {
+			fmt.Println(err.Error())
+			return
+		}
+		*/
+		// cel := row[0]
+
+		t := modDate(row[0])
+		if t.Weekday() != 4 {
+			// fmt.Println(t.Weekday())
+			continue
+		}
+
+		if ( skipWeek == 0) {
+			skipWeek = 1
+			continue
+		}
+		// fmt.Println("--->", date, row[4])
+		// fmt.Println(t.Weekday())
+		skipWeek = 0
+
+		// pos:=fmt.Sprintf("B%d", newIndex)
+		// xlsx.SetCellValue("Result", pos, newIndex-1)
+		writeExcelInt(xlsx, "Result", newIndex, "B", newIndex-1)
+
+		// pos=fmt.Sprintf("C%d", newIndex)
+		// xlsx.SetCellValue("Result", pos, row[0])
+		writeExcelString(xlsx, "Result", newIndex, ("C"), row[0])
+
+		// pos=fmt.Sprintf("D%d", newIndex)
+		// xlsx.SetCellValue("Result", pos, row[4])
+		writeExcelString(xlsx, "Result", newIndex, "D", row[4])
+
+		curVal, _ := strconv.ParseFloat(row[4], 64)
+		if (newIndex == 2) {
+			 curSeed = initSeed
+			// fmt.Println(
+				// fmt.Println(row[4])
+				// fmt.Println(strconv.ParseFloat(row[4], 64))
+				// fmt.Println("VAL ", curVal)
+				stkCnt := int(float64(curSeed)/curVal)
+				// fmt.Println(stkCnt)
+
+				// pos=fmt.Sprintf("E%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, curSeed)
+				writeExcelFloat(xlsx, "Result", newIndex, "E", curSeed)
+
+				preStkCnt = stkCnt
+				// pos=fmt.Sprintf("F%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, stkCnt)
+				writeExcelInt(xlsx, "Result", newIndex, "F", preStkCnt)
+
+				// pos=fmt.Sprintf("G%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, stkCnt)
+				writeExcelInt(xlsx, "Result", newIndex, "G", stkCnt)
+
+				accumVal := float64(stkCnt)*curVal
+				// pos=fmt.Sprintf("H%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, accumVal)
+				writeExcelFloat(xlsx, "Result", newIndex, "H", accumVal)
+
+				lowBase = (accumVal*base)*low
+				// pos=fmt.Sprintf("I%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, lowBase)
+				writeExcelFloat(xlsx, "Result", newIndex, "I", lowBase)
+
+				highBase = (accumVal*base)*high
+				// pos=fmt.Sprintf("J%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, highBase)
+				writeExcelFloat(xlsx, "Result", newIndex, "J", highBase)
+
+				curSeed = seed
+
+		} else {
+			fmt.Println(preStkCnt)
+			/* pre Calculate value of my al stock */
+			totPreVal := curVal*float64(preStkCnt)
+
+			if totPreVal > highBase {
+				/* Sell */
+				// pos=fmt.Sprintf("A%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, "SELL")
+				writeExcelString(xlsx, "Result", newIndex, "A", "SELL")
+
+				// pos=fmt.Sprintf("E%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, curSeed)
+				writeExcelFloat(xlsx, "Result", newIndex, "E", curSeed)
+
+				stkCnt = int((totPreVal - highBase)/curVal)
+				// fmt.Println("PreStkVal", totPreVal, "High Base", highBase)
+				fmt.Println(row[0], "Sell Stock Count", stkCnt, "Pre Stock Value : ", totPreVal, "Base Value ", highBase, "Current Stock Value", curVal)
+				fmt.Println(0-stkCnt)
+
+				// pos=fmt.Sprintf("F%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, stkCnt)
+				writeExcelInt(xlsx, "Result", newIndex, "F", 0-stkCnt)
+
+				preStkCnt = int(preStkCnt) - stkCnt
+				// pos=fmt.Sprintf("G%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, preStkCnt)
+				writeExcelInt(xlsx, "Result", newIndex, "G", preStkCnt)
+
+				accumVal = float64(preStkCnt)*curVal
+				// pos=fmt.Sprintf("H%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, accumVal)
+				writeExcelFloat(xlsx, "Result", newIndex, "H", accumVal)
+
+				sell = float64(stkCnt)*curVal
+				// fmt.Println("stkCnt : ", stkCnt, "CurVal : ", curVal, "SELL", sell, "CurSEED", curSeed)
+				curSeed = sell+curSeed
+				// fmt.Println("After", curSeed)
+
+				lowBase = (accumVal*base)*low
+				// pos=fmt.Sprintf("I%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, lowBase)
+				writeExcelFloat(xlsx, "Result", newIndex, "I", lowBase)
+
+				highBase = (accumVal*base)*high
+				// pos=fmt.Sprintf("J%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, highBase)
+				writeExcelFloat(xlsx, "Result", newIndex, "J", highBase)
+
+			} else {
+				/* Buy */
+				// stkCnt := int((lowBase - totPreVal)/curVal)
+				// pos=fmt.Sprintf("A%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, "BUY")
+				writeExcelString(xlsx, "Result", newIndex, "A", "BUY")
+
+				// pos=fmt.Sprintf("E%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, curSeed)
+				writeExcelFloat(xlsx, "Result", newIndex, "E", curSeed)
+
+				stkCnt = int(float64(curSeed)/curVal)
+				// pos=fmt.Sprintf("F%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, stkCnt)
+				writeExcelInt(xlsx, "Result", newIndex, "F", stkCnt)
+
+				// fmt.Println("=====> PreStkCnt", preStkCnt, "Cur Stock Count", stkCnt)
+				preStkCnt = int(preStkCnt) + stkCnt
+				// fmt.Println("### Renew stkcnt", preStkCnt)
+				// pos=fmt.Sprintf("G%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, preStkCnt)
+				writeExcelInt(xlsx, "Result", newIndex, "G", preStkCnt)
+
+				accumVal = float64(preStkCnt)*curVal
+				// pos=fmt.Sprintf("H%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, accumVal)
+				writeExcelFloat(xlsx, "Result", newIndex, "H", accumVal)
+
+
+				lowBase = (accumVal*base)*low
+				// pos=fmt.Sprintf("I%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, lowBase)
+				writeExcelFloat(xlsx, "Result", newIndex, "I", lowBase)
+
+				highBase = (accumVal*base)*high
+				// pos=fmt.Sprintf("J%d", newIndex)
+				// xlsx.SetCellValue("Result", pos, highBase)
+				writeExcelFloat(xlsx, "Result", newIndex, "J", highBase) 
+				curSeed = seed
+			}
+		}
+
+		newIndex++
+    }
+
+	xlsx.SetActiveSheet(sheet)
+
+    err = xlsx.SaveAs(filePos)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println("Done.")
+	return
+}

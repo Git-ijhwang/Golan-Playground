@@ -11,7 +11,7 @@ func main() {
 	f()
 
 	g := func(x int) {
-		fmt.Println("test secondfunc expression")
+		fmt.Println("test secondfunc expression", x)
 	}
 	g(111)
 }

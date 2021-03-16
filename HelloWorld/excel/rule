@@ -1,0 +1,13 @@
+#Initial Seed Money
+INIT_SEED_MONEY:30000
+#Periodic Seed Money
+PERIOD_SEED_MONEY:1000
+#Number of files to Analyze (MAX:5)
+NUM_FILE:2
+#FILE_NAME
+FILE_NAME:TQQQ_3.xlsx
+FILE_NAME:QLD_3.xlsx
+#Start Date
+start_date:01-19-16
+#End Date
+end_date:01-29-21
