@@ -25,6 +25,7 @@ var seed float64 = 1000.0
 var periodSeed float64
 var initSeed float64 = 30000.0
 var firstSeed float64
+var period string
 var senarioType int
 
 // var myTotalAsset float64 = 0.0
@@ -458,40 +459,98 @@ func senario_2 (xlsx *excelize.File, curVal float64, newIndex int, sheet string)
 	}
 }
 
-// func senario_2
+// func senario_3
 var triger int
-func senario_3 (xlsx *excelize.File, curVal float64, newIndex int, sheet string, time.Time t) {
-	
-	prevMonth := 0
-	curMonth := int(t.Month())
-	preVal := 0.0
+var skip int
+var lastWeek int = 0
+var lastMonth int = 0
 
-	if prevMonth== 0 {
-		prevMonth = curMonth
-	}
+func senario_3 (xlsx *excelize.File, curVal float64, newIndex int, sheet string, date time.Time) {
+	valPeriod := 0
 
-	if prevMonth != curMonth {
-		triger = 1
-		prevMonth = curMonth
-	}
-
-	if prevMonth == curMonth {
-		triger = 0
-	}
-
-	if triger == 1 {
+	if period == "weekly" {
+		valPeriod = 1
+	} else if period == "monthly" {
+		valPeriod = 2
+	} else if period == "everyOtherWeek" {
+		valPeriod = 3
+	} else if period == "everyOtherMonth" {
+		valPeriod = 4
 	} else {
+		valPeriod = 0
 	}
 
-	if (preVal == 0) {
-		preVal = curVal
+	if valPeriod == 0 {
 		return
 	}
-	
-	if (preVal > 0) {
-		// rate := curVal - preVal
+
+	if valPeriod == 1 || valPeriod == 3 {
+		// fmt.Println("=== ")
+		// fmt.Println( date.Date() );
+
+
+		if lastWeek < int(date.Weekday()){
+			lastWeek = int(date.Weekday())
+			return
+		}
+		lastWeek = int(date.Weekday())
+
+		if (valPeriod == 3 && skip == 0) {
+			skip = 1
+			return
+		}
+		skip = 0
+	} else {
+
+		if lastMonth < int(date.Day()){
+			lastMonth = int(date.Day())
+			return
+		}
+		lastMonth = int(date.Day())
+		//1st day of month
+		if (valPeriod == 4 && skip == 0) {
+			skip = 1
+			return
+		}
+		skip = 0
 	}
 
+	// fmt.Println(date.Date())
+
+	if (newIndex == 2) {
+		curSeed = initSeed
+		myInvest = myInvest + curSeed
+		stkCnt := int(float64(curSeed)/curVal)
+
+		writeExcelFloat(xlsx, sheet, newIndex, 'E', curSeed)
+
+		preStkCnt = stkCnt
+		writeExcelInt(xlsx, sheet, newIndex, 'F', preStkCnt)
+
+		writeExcelInt(xlsx, sheet, newIndex, 'G', stkCnt)
+
+		accumVal := float64(stkCnt)*curVal
+		myFinalAsset = accumVal
+		writeExcelFloat(xlsx, sheet, newIndex, 'H', accumVal)
+
+		curSeed = (curSeed-(float64(stkCnt)*curVal))+seed
+
+	} else {
+		/* pre Calculate value of my al stock */
+		totPreVal := curVal*float64(preStkCnt)
+		myInvest = myInvest + curSeed
+
+			writeExcelString(xlsx, sheet, newIndex, 'A', "-")
+			writeExcelFloat(xlsx, sheet, newIndex, 'E', curSeed)
+			writeExcelInt(xlsx, sheet, newIndex, 'F', 0)
+			writeExcelInt(xlsx, sheet, newIndex, 'G', preStkCnt)
+			accumVal = float64(preStkCnt)*curVal
+			myFinalAsset = accumVal
+			writeExcelFloat(xlsx, sheet, newIndex, 'H', accumVal)
+
+			curSeed = curSeed+seed
+	}
+	
 }
 
 func checkConfig() {
@@ -541,6 +600,10 @@ func readFile(name string) {
 		if ( ruleData[0] == "INIT_SEED_MONEY") {
 			val, _ := (strconv.Atoi(ruleData[1]))
 			firstSeed = float64(val)
+			continue;
+		}
+		if ( ruleData[0] == "PERIOD_INVEST"){
+			period = (ruleData[1])
 			continue;
 		}
 
@@ -648,18 +711,21 @@ func main () {
 			}
 
 			t := convertDate(row[0])
-			if t.Weekday() != 4 {
-				continue
-			}
+			// fmt.Println(t.Date())
+			if (senarioType == 1 || senarioType == 2) {
+				if t.Weekday() != 4 {
+					continue
+				}
 
-			if ( skipWeek == 0) {
-				skipWeek = 1
-				continue
+				if ( skipWeek == 0) {
+					skipWeek = 1
+					continue
+				}
+				skipWeek = 0
 			}
-			skipWeek = 0
 
 			if (numFile == 1) {
-			}else {
+			} else {
 				//Open new file for result
 				if (resultFile == nil) {
 					resultFile = excelize.NewFile();
@@ -674,8 +740,10 @@ func main () {
 				calcMdd(curVal, newIndex, strDate)
 				if senarioType == 1 {
 					senario_1(xlsx, curVal, newIndex, resultSheetName)
-				} else {
+				} else if senarioType == 2 {
 					senario_2(xlsx, curVal, newIndex, resultSheetName)
+				} else if senarioType == 3 {
+					senario_3(xlsx, curVal, newIndex, resultSheetName, t)
 				}
 			}
 

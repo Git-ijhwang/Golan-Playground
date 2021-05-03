@@ -4,11 +4,14 @@ INIT_SEED_MONEY:30000
 #Periodic Seed Money
 PERIOD_SEED_MONEY:1000
 
+#Period Investing #weekly, monthly, everyOtherWeek, everyOtherMonth
+PERIOD_INVEST:everyOtherMonth
+
 #Senario Type
-SENARIO_TYPE:1
+SENARIO_TYPE:3
 
 #Number of files to Analyze (MAX:5)
-NUM_FILE:3
+NUM_FILE:1
 
 #FILE_NAME
 FILE_NAME:TQQQ_3.xlsx
